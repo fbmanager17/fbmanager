@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facebook Multi-Account Manager Pro</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js for visual metrics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            fb: {
+              blue: '#1877F2',
+              hover: '#166FE5',
+              dark: '#0d5cb6',
+              bg: '#18191a',
+              card: '#242526',
+              border: '#3a3b3c'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 overflow-hidden">
+
+  <header class="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 font-bold text-xl">
+        <i class="fa-brands font-extrabold text-2xl fa-facebook-f"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+          FB Manager <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">PRO v2.5</span>
+        </h1>
+        <p class="text-xs text-slate-400 hidden sm:block">Multi-Account & Automation Command Center</p>
+      </div>
+    </div>
+
+    <!-- Right Header Utilities -->
+    <div class="flex items-center space-x-3">
+      <button onclick="app.refreshAllStatuses()" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm flex items-center gap-2 border border-slate-700/50" title="Check All Proxies & Status">
+        <i class="fa-solid fa-rotate text-blue-400"></i>
+        <span class="hidden md:inline text-xs font-medium">Check Proxies</span>
+      </button>
+
+      <button onclick="app.openModal('add-account-modal')" class="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-blue-600/30 transition">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Account</span>
+      </button>
+
+      <div class="h-6 w-px bg-slate-800 my-auto"></div>
+
+      <!-- User Profile Badge -->
+      <div class="flex items-center gap-2 pl-1">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center font-bold text-xs text-white">
+          ADMIN
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden relative">
+    
+    <aside class="w-16 md:w-64 border-r border-slate-800 bg-slate-900/50 flex flex-col justify-between shrink-0 transition-all duration-300 z-20">
+      <nav class="p-2 md:p-3 space-y-1.5">
+        <button onclick="app.switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs md:text-sm font-medium transition text-blue-400 bg-blue-500/10 border border-blue-500/20">
+          <i class="fa-solid fa-chart-pie text-lg w-6 text-center"></i>
+          <span class="hidden md:inline">Dashboard</span>
+        </button>
+
+        <button onclick="app.switchTab('accounts')" id="nav-accounts" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs md:text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">
+          <i class="fa-solid fa-users text-lg w-6 text-center"></i>
+          <span class="hidden md:inline flex-1 text-left">Accounts List</span>
+          <span id="account-badge-count" class="hidden md:inline px-2 py-0.5 text-xs rounded-full bg-slate-800 text-slate-300 border border-slate-700">0</span>
+        </button>
+
+        <button onclick="app.switchTab('warmup')" id="nav-warmup" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs md:text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">
+          <i class="fa-solid fa-fire-flame-curved text-lg w-6 text-center text-amber-500"></i>
+          <span class="hidden md:inline">Auto Warm-up</span>
+        </button>
+
+        <button onclick="app.switchTab('proxies')" id="nav-proxies" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs md:text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">
+          <i class="fa-solid fa-network-wired text-lg w-6 text-center text-emerald-400"></i>
+          <span class="hidden md:inline">Proxy Center</span>
+        </button>
+
+        <button onclick="app.switchTab('messenger')" id="nav-messenger" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs md:text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">
+          <i class="fa-solid fa-comments text-lg w-6 text-center text-indigo-400"></i>
+          <span class="hidden md:inline">Unified Inbox</span>
+        </button>
+
+        <button onclick="app.switchTab('scheduler')" id="nav-scheduler" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs md:text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">
+          <i class="fa-solid fa-calendar-days text-lg w-6 text-center text-purple-400"></i>
+          <span class="hidden md:inline">Post Scheduler</span>
+        </button>
+
+        <button onclick="app.switchTab('logs')" id="nav-logs" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs md:text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">
+          <i class="fa-solid fa-list-check text-lg w-6 text-center text-slate-400"></i>
+          <span class="hidden md:inline">System Logs</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer / System Status -->
+      <div class="p-3 border-t border-slate-800 hidden md:block">
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-400">System Anti-Ban Engine</span>
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-emerald-500 h-full w-[94%]"></div>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-1">Simulating Human Behavior Engine Active</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Dynamic Container -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-950 relative">
+
+      <section id="tab-dashboard" class="tab-content space-y-6">
+        <!-- Metric Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Accounts</span>
+              <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                <i class="fa-solid fa-users text-base"></i>
+              </div>
+            </div>
+            <div class="mt-3 flex items-baseline justify-between">
+              <span id="dash-total-accounts" class="text-2xl font-bold text-white">0</span>
+              <span class="text-xs font-medium text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Connected</span>
+            </div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active / Safe</span>
+              <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                <i class="fa-solid fa-shield-halved text-base"></i>
+              </div>
+            </div>
+            <div class="mt-3 flex items-baseline justify-between">
+              <span id="dash-active-accounts" class="text-2xl font-bold text-emerald-400">0</span>
+              <span id="dash-active-pct" class="text-xs text-slate-400">100% operational</span>
+            </div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Warming Up</span>
+              <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                <i class="fa-solid fa-fire text-base"></i>
+              </div>
+            </div>
+            <div class="mt-3 flex items-baseline justify-between">
+              <span id="dash-warming-accounts" class="text-2xl font-bold text-amber-400">0</span>
+              <span class="text-xs text-amber-400/80">Auto sequence active</span>
+            </div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Checkpoints / Issues</span>
+              <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                <i class="fa-solid fa-triangle-exclamation text-base"></i>
+              </div>
+            </div>
+            <div class="mt-3 flex items-baseline justify-between">
+              <span id="dash-issue-accounts" class="text-2xl font-bold text-rose-400">0</span>
+              <span class="text-xs text-slate-400">Needs attention</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Visual Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Main Activity Chart -->
+          <div class="lg:col-span-2 glass-card p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-semibold text-white text-base">Daily Automated Actions</h3>
+                <p class="text-xs text-slate-400">Likes, Comments, Friend Requests & Posts across accounts</p>
+              </div>
+              <span class="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">Last 7 Days</span>
+            </div>
+            <div class="h-64 w-full relative">
+              <canvas id="activityChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Quick Action Controls & Status -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <h3 class="font-semibold text-white text-base mb-1">Account Operations Hub</h3>
+              <p class="text-xs text-slate-400 mb-4">Execute safe multi-account actions simultaneously</p>
+              
+              <div class="space-y-3">
+                <button onclick="app.triggerGlobalAction('like_feed')" class="w-full p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left transition flex items-center justify-between group">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <i class="fa-solid fa-thumbs-up"></i>
+                    </div>
+                    <div>
+                      <p class="text-xs font-semibold text-white">Auto Feed Scroll & Like</p>
+                      <p class="text-[10px] text-slate-400">Simulates 5-10 min organic session</p>
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-blue-400 transition-colors"></i>
+                </button>
+
+                <button onclick="app.triggerGlobalAction('accept_friends')" class="w-full p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left transition flex items-center justify-between group">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <div>
+                      <p class="text-xs font-semibold text-white">Accept Pending Requests</p>
+                      <p class="text-[10px] text-slate-400">Max 3-5 requests per session</p>
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-emerald-400 transition-colors"></i>
+                </button>
+
+                <button onclick="app.triggerGlobalAction('cookie_backup')" class="w-full p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left transition flex items-center justify-between group">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <i class="fa-solid fa-cookie-bite"></i>
+                    </div>
+                    <div>
+                      <p class="text-xs font-semibold text-white">Refresh Access Tokens & Cookies</p>
+                      <p class="text-[10px] text-slate-400">Verify session validity</p>
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-purple-400 transition-colors"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+              <span>Safety Delay: <strong class="text-emerald-400">45-120s Random</strong></span>
+              <button onclick="app.resetData()" class="text-slate-500 hover:text-rose-400 text-xs transition">Reset Sample Data</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity Mini Log -->
+        <div class="glass-card p-5 rounded-2xl border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-white text-sm">Recent System Executions</h3>
+            <button onclick="app.switchTab('logs')" class="text-xs text-blue-400 hover:underline">View All Logs &rarr;</button>
+          </div>
+          <div id="dash-recent-logs" class="space-y-2 text-xs font-mono">
+            <!-- Dynamic mini logs insertion -->
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-accounts" class="tab-content hidden space-y-4">
+        <!-- Filter & Search Toolbar -->
+        <div class="flex flex-col sm:flex-row gap-3 items-center justify-between bg-slate-900 p-3.5 rounded-2xl border border-slate-800">
+          <div class="relative w-full sm:w-72">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" id="account-search-input" onkeyup="app.filterAccounts()" placeholder="Search account name, ID or tag..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <select id="account-status-filter" onchange="app.filterAccounts()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500">
+              <option value="ALL">All Statuses</option>
+              <option value="ACTIVE">Active / Safe</option>
+              <option value="WARMING">Warming Up</option>
+              <option value="RESTRICTED">Checkpoint / Restricted</option>
+            </select>
+
+            <button onclick="app.bulkVerify()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-shield-check text-emerald-400"></i>
+              <span>Verify All</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Accounts Grid/List -->
+        <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                  <th class="p-3.5">Account Info</th>
+                  <th class="p-3.5">Status</th>
+                  <th class="p-3.5">Assigned Proxy</th>
+                  <th class="p-3.5">Fingerprint / UA</th>
+                  <th class="p-3.5">Daily Actions</th>
+                  <th class="p-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="accounts-table-body" class="divide-y divide-slate-800/60">
+                <!-- Dynamic Accounts Row -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-warmup" class="tab-content hidden space-y-6">
+        <div class="glass-card p-6 rounded-2xl border border-slate-800">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-fire text-amber-500"></i> Smart Anti-Ban Account Warm-Up Engine
+              </h2>
+              <p class="text-xs text-slate-400 mt-1">Gradually build Facebook account trust scores by simulating authentic human behaviors.</p>
+            </div>
+            <button onclick="app.startAllWarmup()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 transition">
+              <i class="fa-solid fa-play"></i>
+              <span>Run Warm-Up Sequence</span>
+            </button>
+          </div>
+
+          <!-- Warmup Steps Matrix -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">Phase 1 (Day 1-3)</div>
+              <h4 class="text-sm font-semibold text-white">Passive Browsing</h4>
+              <p class="text-[11px] text-slate-400 mt-2">Scroll feed, watch Facebook Watch videos, accept 1-2 friend requests.</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="text-blue-400 text-xs font-bold uppercase tracking-wider mb-1">Phase 2 (Day 4-7)</div>
+              <h4 class="text-sm font-semibold text-white">Light Engagement</h4>
+              <p class="text-[11px] text-slate-400 mt-2">Like 3-5 posts, comment short positive emojis, join 1 targeted group.</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="text-purple-400 text-xs font-bold uppercase tracking-wider mb-1">Phase 3 (Day 8-14)</div>
+              <h4 class="text-sm font-semibold text-white">Active Social</h4>
+              <p class="text-[11px] text-slate-400 mt-2">Publish 1 personal timeline post, reply to messages, send 2 requests.</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">Phase 4 (Day 15+)</div>
+              <h4 class="text-sm font-semibold text-white">Fully Warmed Up</h4>
+              <p class="text-[11px] text-slate-400 mt-2">Ready for Ads Manager, Marketplace listing, and mass messaging.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Warm-up Progress List -->
+        <div class="glass-card p-5 rounded-2xl border border-slate-800">
+          <h3 class="font-semibold text-white text-sm mb-4">Accounts in Warm-Up Mode</h3>
+          <div id="warmup-accounts-list" class="space-y-3">
+            <!-- Dynamic Warmup list -->
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-proxies" class="tab-content hidden space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-network-wired text-emerald-400"></i> Proxy Pool & Isolation
+            </h2>
+            <p class="text-xs text-slate-400">Assign dedicated HTTP/SOCKS5 proxies to eliminate account IP cross-contamination.</p>
+          </div>
+          <button onclick="app.openModal('add-proxy-modal')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-2 transition">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Proxies</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="proxies-card-grid">
+          <!-- Dynamic Proxy Cards -->
+        </div>
+      </section>
+
+      <section id="tab-messenger" class="tab-content hidden h-[calc(100vh-110px)]">
+        <div class="glass-card rounded-2xl border border-slate-800 h-full flex overflow-hidden">
+          <!-- Conversation List -->
+          <div class="w-80 border-r border-slate-800 flex flex-col bg-slate-900/50">
+            <div class="p-3.5 border-b border-slate-800">
+              <label class="text-[10px] uppercase tracking-wider text-slate-500 font-bold block mb-1">Select Account Context</label>
+              <select id="chat-account-select" onchange="app.renderMessengerChat()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white">
+                <!-- Dynamic account dropdown options -->
+              </select>
+            </div>
+            <div id="chat-threads-list" class="flex-1 overflow-y-auto divide-y divide-slate-800/40">
+              <!-- Dynamic Chat Threads -->
+            </div>
+          </div>
+
+          <!-- Active Chat Window -->
+          <div class="flex-1 flex flex-col bg-slate-950">
+            <div id="chat-header" class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+              <div class="flex items-center gap-3">
+                <div id="chat-target-avatar" class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs text-blue-400">?</div>
+                <div>
+                  <h4 id="chat-target-name" class="text-sm font-semibold text-white">Select a chat</h4>
+                  <p id="chat-target-sub" class="text-xs text-slate-500">Facebook Messenger Thread</p>
+                </div>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">End-to-End Encrypted Simulation</span>
+            </div>
+
+            <!-- Messages Message Area -->
+            <div id="chat-messages-body" class="flex-1 p-4 overflow-y-auto space-y-3">
+              <div class="text-center text-xs text-slate-500 my-8">Select a conversation to view and reply to Facebook messages.</div>
+            </div>
+
+            <!-- Message Input Form -->
+            <div class="p-3 border-t border-slate-800 bg-slate-900/40 flex items-center gap-2">
+              <input type="text" id="chat-message-input" placeholder="Type a message or use automated templates..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              <button onclick="app.sendChatMessage()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+                <span>Send</span>
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-scheduler" class="tab-content hidden space-y-6">
+        <div class="glass-card p-6 rounded-2xl border border-slate-800">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-comments text-purple-400"></i> Multi-Account Custom Comment & Post Publisher
+              </h2>
+              <p class="text-xs text-slate-400">Write distinct custom comments for each Facebook ID to avoid duplicate spam detection.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="app.applyCommonComment()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-copy text-blue-400"></i>
+                <span>Fill Common Text to All</span>
+              </button>
+              <button onclick="app.clearAllIndividualComments()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs transition">
+                Clear All
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Target Post / Comment Link Input -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">
+                <i class="fa-solid fa-link text-blue-400 mr-1"></i> Target Post / Comment Link (ਦੂਜੇ ਬੰਦੇ ਦੀ ID / ਪੋਸਟ ਦਾ ਲਿੰਕ)
+              </label>
+              <input type="url" id="post-target-url-input" placeholder="https://facebook.com/posts/1234567890..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+            </div>
+
+            <!-- Individual Comment Boxes Container -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-2">Individual Account Comment Boxes (ਹਰੇਕ ਆਈਡੀ ਦਾ ਵੱਖਰਾ ਕਮੈਂਟ ਬਾਕਸ)</label>
+              <div id="individual-comments-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[420px] overflow-y-auto p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                <!-- Dynamic per-account comment boxes rendered here -->
+              </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+              <button onclick="app.publishPostNow()" class="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Submit All Individual Comments Now</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Posts History List -->
+          <div class="mt-6 bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Published Individual Comments History</h3>
+            <div id="scheduled-posts-list" class="flex-1 overflow-y-auto space-y-3 max-h-60">
+              <!-- Dynamic Posts -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-logs" class="tab-content hidden space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-terminal text-slate-400"></i> Execution Audit Trail & Logs
+          </h2>
+          <button onclick="app.clearLogs()" class="text-xs text-rose-400 hover:underline">Clear Logs</button>
+        </div>
+
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 bg-slate-950 font-mono text-xs">
+          <div id="full-logs-container" class="space-y-2 max-h-[600px] overflow-y-auto">
+            <!-- Full Logs Output -->
+          </div>
+        </div>
+      </section>
+      <section id="tab-scheduler" class="tab-content hidden space-y-6">
+        <div class="glass-card p-6 rounded-2xl border border-slate-800">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-comments text-purple-400"></i> Multi-Account Custom Comment & Post Publisher
+              </h2>
+              <p class="text-xs text-slate-400">Write distinct custom comments for each Facebook ID to avoid duplicate spam detection.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="app.applyCommonComment()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-copy text-blue-400"></i>
+                <span>Fill Common Text to All</span>
+              </button>
+              <button onclick="app.clearAllIndividualComments()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs transition">
+                Clear All
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Target Post / Comment Link Input -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">
+                <i class="fa-solid fa-link text-blue-400 mr-1"></i> Target Post / Comment Link (ਦੂਜੇ ਬੰਦੇ ਦੀ ID / ਪੋਸਟ ਦਾ ਲਿੰਕ)
+              </label>
+              <input type="url" id="post-target-url-input" placeholder="https://facebook.com/posts/1234567890..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+            </div>
+
+            <!-- Individual Comment Boxes Container -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-2">Individual Account Comment Boxes (ਹਰੇਕ ਆਈਡੀ ਦਾ ਵੱਖਰਾ ਕਮੈਂਟ ਬਾਕਸ)</label>
+              <div id="individual-comments-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[420px] overflow-y-auto p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                <!-- Dynamic per-account comment boxes rendered here -->
+              </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+              <button onclick="app.publishPostNow()" class="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Submit All Individual Comments Now</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Posts History List -->
+          <div class="mt-6 bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Published Individual Comments History</h3>
+            <div id="scheduled-posts-list" class="flex-1 overflow-y-auto space-y-3 max-h-60">
+              <!-- Dynamic Posts -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: ADD ACCOUNT -->
+  <div id="add-account-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i class="fa-brands fa-facebook text-blue-500"></i> Import New Facebook Account
+        </h3>
+        <button onclick="app.closeModal('add-account-modal')" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="app.handleAddAccount(event)" class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Account Display Name</label>
+          <input type="text" id="acc-name" required placeholder="e.g. Rahul Sharma (Main)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Facebook User ID / Email</label>
+          <input type="text" id="acc-fbid" required placeholder="100088294829102" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Access Token / Session Cookie (Optional)</label>
+          <input type="text" id="acc-token" placeholder="EAA..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 font-mono">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Initial Status</label>
+            <select id="acc-status" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+              <option value="ACTIVE">Active / Ready</option>
+              <option value="WARMING">Needs Warm-Up</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Assign Proxy</label>
+            <select id="acc-proxy-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+              <option value="Direct (No Proxy)">Direct (No Proxy)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="app.closeModal('add-account-modal')" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/30">Save Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD PROXY -->
+  <div id="add-proxy-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i class="fa-solid fa-network-wired text-emerald-400"></i> Add Proxy Server
+        </h3>
+        <button onclick="app.closeModal('add-proxy-modal')" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="app.handleAddProxy(event)" class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Proxy IP & Port</label>
+          <input type="text" id="proxy-host" required placeholder="185.220.101.4:8080" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Protocol</label>
+            <select id="proxy-proto" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+              <option value="HTTP">HTTP</option>
+              <option value="HTTPS">HTTPS</option>
+              <option value="SOCKS5">SOCKS5</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Country / Region</label>
+            <input type="text" id="proxy-location" placeholder="United States" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="app.closeModal('add-proxy-modal')" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/30">Save Proxy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification System Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    /*
+     * Facebook Multi-Account Manager Pro Core Application
+     * Handles account state, auto warm-up simulations, proxy checks, logs, and unified inbox.
+     */
+
+    const DEFAULT_ACCOUNTS = [
+      {
+        id: 'acc_101',
+        name: 'Aarav Patel (Main Ad Acc)',
+        fbid: '100092847291011',
+        status: 'ACTIVE',
+        proxy: '104.28.19.12:8080 (US)',
+        ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0',
+        warmupDay: 18,
+        dailyActions: 42,
+        avatar: 'AP'
+      },
+      {
+        id: 'acc_102',
+        name: 'Priya Sharma (Warm-Up)',
+        fbid: '100088129482103',
+        status: 'WARMING',
+        proxy: '185.220.101.4:3128 (IN)',
+        ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15',
+        warmupDay: 4,
+        dailyActions: 12,
+        avatar: 'PS'
+      },
+      {
+        id: 'acc_103',
+        name: 'Vikram Malhotra (Outreach)',
+        fbid: '100077391829381',
+        status: 'ACTIVE',
+        proxy: '45.14.174.12:8080 (UK)',
+        ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/121.0.0.0',
+        warmupDay: 25,
+        dailyActions: 68,
+        avatar: 'VM'
+      },
+      {
+        id: 'acc_104',
+        name: 'Neha Gupta (Restricted Demo)',
+        fbid: '100066129481920',
+        status: 'RESTRICTED',
+        proxy: 'Direct (No Proxy)',
+        ua: 'Mozilla/5.0 (Linux; Android 13; SM-S901B) Chrome/118.0.0.0',
+        warmupDay: 1,
+        dailyActions: 0,
+        avatar: 'NG'
+      }
+    ];
+
+    const DEFAULT_PROXIES = [
+      { id: 'px_1', host: '104.28.19.12:8080', proto: 'HTTP', location: 'United States', status: 'Online', ping: '42ms' },
+      { id: 'px_2', host: '185.220.101.4:3128', proto: 'SOCKS5', location: 'India', status: 'Online', ping: '18ms' },
+      { id: 'px_3', host: '45.14.174.12:8080', proto: 'HTTPS', location: 'United Kingdom', status: 'Online', ping: '85ms' }
+    ];
+
+    const MOCK_MESSAGES = {
+      'acc_101': [
+        { sender: 'Rohan Mehta', text: 'Hey Aarav, is the Facebook Ad campaign running for Diwali sale?', time: '10:42 AM', isMe: false },
+        { sender: 'You', text: 'Yes! High ROAS ad sets are live right now.', time: '10:45 AM', isMe: true }
+      ],
+      'acc_102': [
+        { sender: 'Facebook Security', text: 'Security Tip: Please review your recent login location.', time: 'Yesterday', isMe: false }
+      ]
+    };
+
+    class FBMultiManager {
+      constructor() {
+        this.accounts = JSON.parse(localStorage.getItem('fb_accounts')) || DEFAULT_ACCOUNTS;
+        this.proxies = JSON.parse(localStorage.getItem('fb_proxies')) || DEFAULT_PROXIES;
+        this.logs = JSON.parse(localStorage.getItem('fb_logs')) || [];
+        this.posts = JSON.parse(localStorage.getItem('fb_posts')) || [];
+        this.chart = null;
+
+        this.init();
+      }
+
+      init() {
+        this.updateStats();
+        this.renderAccountsTable();
+        this.renderProxies();
+        this.renderWarmupList();
+        this.populateProxyDropdown();
+        this.renderMessengerOptions();
+        this.renderScheduledPosts();
+        this.initChart();
+
+        // Add initial log entry if empty
+        if (this.logs.length === 0) {
+          this.addLog('SYSTEM', 'Multi-Account Anti-Detect Framework Initialized', 'info');
+        } else {
+          this.renderLogs();
+        }
+
+        // Set Account Count Badge
+        const badge = document.getElementById('account-badge-count');
+        if (badge) badge.innerText = this.accounts.length;
+      }
+
+      saveData() {
+        localStorage.setItem('fb_accounts', JSON.stringify(this.accounts));
+        localStorage.setItem('fb_proxies', JSON.stringify(this.proxies));
+        localStorage.setItem('fb_logs', JSON.stringify(this.logs));
+        localStorage.setItem('fb_posts', JSON.stringify(this.posts));
+        this.updateStats();
+      }
+
+      switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.nav-btn').forEach(el => {
+          el.classList.remove('text-blue-400', 'bg-blue-500/10', 'border', 'border-blue-500/20');
+          el.classList.add('text-slate-400');
+        });
+
+        const activeTab = document.getElementById(`tab-${tabName}`);
+        const activeNav = document.getElementById(`nav-${tabName}`);
+
+        if (activeTab) activeTab.classList.remove('hidden');
+        if (activeNav) {
+          activeNav.classList.remove('text-slate-400');
+          activeNav.classList.add('text-blue-400', 'bg-blue-500/10', 'border', 'border-blue-500/20');
+        }
+
+        if (tabName === 'messenger') {
+          this.renderMessengerChat();
+        }
+      }
+
+      updateStats() {
+        const total = this.accounts.length;
+        const active = this.accounts.filter(a => a.status === 'ACTIVE').length;
+        const warming = this.accounts.filter(a => a.status === 'WARMING').length;
+        const restricted = this.accounts.filter(a => a.status === 'RESTRICTED').length;
+
+        const elTotal = document.getElementById('dash-total-accounts');
+        const elActive = document.getElementById('dash-active-accounts');
+        const elWarming = document.getElementById('dash-warming-accounts');
+        const elIssue = document.getElementById('dash-issue-accounts');
+        const elPct = document.getElementById('dash-active-pct');
+
+        if (elTotal) elTotal.innerText = total;
+        if (elActive) elActive.innerText = active;
+        if (elWarming) elWarming.innerText = warming;
+        if (elIssue) elIssue.innerText = restricted;
+
+        const activePct = total > 0 ? Math.round((active / total) * 100) : 0;
+        if (elPct) elPct.innerText = `${activePct}% operational`;
+
+        const badge = document.getElementById('account-badge-count');
+        if (badge) badge.innerText = total;
+      }
+
+      renderAccountsTable() {
+        const tbody = document.getElementById('accounts-table-body');
+        if (!tbody) return;
+
+        const searchTerm = (document.getElementById('account-search-input')?.value || '').toLowerCase();
+        const filterStatus = document.getElementById('account-status-filter')?.value || 'ALL';
+
+        const filtered = this.accounts.filter(acc => {
+          const matchesSearch = acc.name.toLowerCase().includes(searchTerm) || acc.fbid.includes(searchTerm);
+          const matchesStatus = filterStatus === 'ALL' || acc.status === filterStatus;
+          return matchesSearch && matchesStatus;
+        });
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 text-xs">No Facebook accounts matched your filter.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(acc => {
+          let statusBadge = '';
+          if (acc.status === 'ACTIVE') {
+            statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i class="fa-solid fa-check mr-1"></i>Active / Safe</span>`;
+          } else if (acc.status === 'WARMING') {
+            statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20"><i class="fa-solid fa-fire mr-1"></i>Warming (Day ${acc.warmupDay})</span>`;
+          } else {
+            statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Checkpoint</span>`;
+          }
+
+          return `
+            <tr class="hover:bg-slate-900/60 transition">
+              <td class="p-3.5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-blue-600/30 text-blue-400 font-bold flex items-center justify-center text-xs border border-blue-500/30 shrink-0">
+                    ${acc.avatar || 'FB'}
+                  </div>
+                  <div>
+                    <div class="font-semibold text-white text-xs">${this.escapeHtml(acc.name)}</div>
+                    <div class="text-[10px] text-slate-500 font-mono">ID: ${acc.fbid}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="p-3.5">${statusBadge}</td>
+              <td class="p-3.5 text-slate-300 font-mono text-[11px]">${acc.proxy}</td>
+              <td class="p-3.5 text-slate-400 text-[10px] max-w-xs truncate" title="${acc.ua}">${acc.ua}</td>
+              <td class="p-3.5 font-bold text-slate-200 text-xs">${acc.dailyActions} ops</td>
+              <td class="p-3.5 text-right space-x-1">
+                <button onclick="app.verifySingleAccount('${acc.id}')" class="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-emerald-400 transition" title="Test Session Connection"><i class="fa-solid fa-plug"></i></button>
+                <button onclick="app.deleteAccount('${acc.id}')" class="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-rose-400 transition" title="Remove Account"><i class="fa-solid fa-trash-can"></i></button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      filterAccounts() {
+        this.renderAccountsTable();
+      }
+
+      handleAddAccount(e) {
+        e.preventDefault();
+        const name = document.getElementById('acc-name').value;
+        const fbid = document.getElementById('acc-fbid').value;
+        const status = document.getElementById('acc-status').value;
+        const proxy = document.getElementById('acc-proxy-select').value;
+
+        const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'FB';
+
+        const newAcc = {
+          id: 'acc_' + Date.now(),
+          name,
+          fbid,
+          status,
+          proxy,
+          ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/123.0.0.0',
+          warmupDay: status === 'WARMING' ? 1 : 14,
+          dailyActions: 0,
+          avatar: initials
+        };
+
+        this.accounts.push(newAcc);
+        this.saveData();
+        this.renderAccountsTable();
+        this.renderWarmupList();
+        this.renderMessengerOptions();
+        this.closeModal('add-account-modal');
+        this.showToast(`Account "${name}" added successfully!`, 'success');
+        this.addLog('ACCOUNT', `Added new Facebook profile: ${name} (${fbid})`, 'success');
+        e.target.reset();
+      }
+
+      deleteAccount(id) {
+        const acc = this.accounts.find(a => a.id === id);
+        if (!acc) return;
+
+        this.accounts = this.accounts.filter(a => a.id !== id);
+        this.saveData();
+        this.renderAccountsTable();
+        this.renderWarmupList();
+        this.showToast(`Account removed`, 'info');
+        this.addLog('ACCOUNT', `Removed account ID: ${id}`, 'warning');
+      }
+
+      verifySingleAccount(id) {
+        const acc = this.accounts.find(a => a.id === id);
+        if (!acc) return;
+
+        this.showToast(`Ping sent to proxy for ${acc.name}...`, 'info');
+        setTimeout(() => {
+          this.showToast(`Session verified! Account token active.`, 'success');
+          this.addLog('PROXY', `Verified proxy connection for ${acc.name} via ${acc.proxy}`, 'success');
+        }, 800);
+      }
+
+      bulkVerify() {
+        this.showToast(`Running bulk connection test for ${this.accounts.length} accounts...`, 'info');
+        setTimeout(() => {
+          this.showToast(`All active accounts verified successfully!`, 'success');
+          this.addLog('SYSTEM', `Bulk proxy and cookie health check completed for ${this.accounts.length} profiles.`, 'success');
+        }, 1200);
+      }
+
+      renderProxies() {
+        const grid = document.getElementById('proxies-card-grid');
+        if (!grid) return;
+
+        grid.innerHTML = this.proxies.map(px => `
+          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold font-mono text-emerald-400">${px.proto}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${px.ping}</span>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-white font-mono">${px.host}</div>
+              <div class="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                <i class="fa-solid fa-location-dot text-slate-500"></i> ${px.location}
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-slate-500 text-[11px]">Assigned to: <strong class="text-slate-300">Active Profiles</strong></span>
+              <button onclick="app.testProxy('${px.id}')" class="text-blue-400 hover:underline text-xs">Test Ping</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      populateProxyDropdown() {
+        const select = document.getElementById('acc-proxy-select');
+        if (!select) return;
+
+        select.innerHTML = '<option value="Direct (No Proxy)">Direct (No Proxy)</option>' +
+          this.proxies.map(p => `<option value="${p.host} (${p.location})">${p.host} (${p.location})</option>`).join('');
+      }
+
+      handleAddProxy(e) {
+        e.preventDefault();
+        const host = document.getElementById('proxy-host').value;
+        const proto = document.getElementById('proxy-proto').value;
+        const location = document.getElementById('proxy-location').value || 'Global';
+
+        const newProxy = {
+          id: 'px_' + Date.now(),
+          host,
+          proto,
+          location,
+          status: 'Online',
+          ping: Math.floor(Math.random() * 50 + 15) + 'ms'
+        };
+
+        this.proxies.push(newProxy);
+        this.saveData();
+        this.renderProxies();
+        this.populateProxyDropdown();
+        this.closeModal('add-proxy-modal');
+        this.showToast('Proxy added to pool!', 'success');
+        this.addLog('PROXY', `Added new ${proto} proxy: ${host}`, 'info');
+        e.target.reset();
+      }
+
+      testProxy(id) {
+        const px = this.proxies.find(p => p.id === id);
+        if (!px) return;
+        this.showToast(`Testing ${px.host}... Latency: ${px.ping}`, 'success');
+      }
+
+      renderWarmupList() {
+        const container = document.getElementById('warmup-accounts-list');
+        if (!container) return;
+
+        const warming = this.accounts.filter(a => a.status === 'WARMING');
+
+        if (warming.length === 0) {
+          container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">No accounts currently in warm-up queue. Change an account status to "Needs Warm-Up" to start automatic trust building.</p>`;
+          return;
+        }
+
+        container.innerHTML = warming.map(acc => {
+          const progressPct = Math.min(100, Math.round((acc.warmupDay / 14) * 100));
+          return `
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-xs">
+                  Day ${acc.warmupDay}
+                </div>
+                <div>
+                  <h4 class="text-xs font-semibold text-white">${this.escapeHtml(acc.name)}</h4>
+                  <p class="text-[10px] text-slate-400">Target daily interactions: 10-15 likes/scrolls</p>
+                </div>
+              </div>
+
+              <div class="w-full md:w-64 space-y-1">
+                <div class="flex justify-between text-[10px] text-slate-400 font-semibold">
+                  <span>Trust Score Progress</span>
+                  <span>${progressPct}%</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-amber-500 h-full transition-all duration-500" style="width: ${progressPct}%"></div>
+                </div>
+              </div>
+
+              <button onclick="app.simulateWarmupStep('${acc.id}')" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 text-xs font-semibold border border-amber-500/30 transition">
+                Simulate 1 Session
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      startAllWarmup() {
+        const warming = this.accounts.filter(a => a.status === 'WARMING');
+        if (warming.length === 0) {
+          this.showToast('No accounts currently set to Warm-Up mode.', 'warning');
+          return;
+        }
+
+        this.showToast(`Starting multi-account warm-up sequence for ${warming.length} profiles...`, 'info');
+        warming.forEach((acc, idx) => {
+          setTimeout(() => {
+            acc.warmupDay = Math.min(14, acc.warmupDay + 1);
+            acc.dailyActions += Math.floor(Math.random() * 8 + 3);
+            if (acc.warmupDay >= 14) acc.status = 'ACTIVE';
+            this.addLog('WARMUP', `Executed automated human feed scroll for ${acc.name} (Day ${acc.warmupDay})`, 'success');
+            this.saveData();
+            this.renderAccountsTable();
+            this.renderWarmupList();
+          }, (idx + 1) * 800);
+        });
+      }
+
+      simulateWarmupStep(id) {
+        const acc = this.accounts.find(a => a.id === id);
+        if (!acc) return;
+
+        acc.warmupDay = Math.min(14, acc.warmupDay + 1);
+        acc.dailyActions += 5;
+        if (acc.warmupDay >= 14) {
+          acc.status = 'ACTIVE';
+          this.showToast(`${acc.name} is now fully warmed up!`, 'success');
+        } else {
+          this.showToast(`Simulated Day ${acc.warmupDay} tasks for ${acc.name}`, 'info');
+        }
+
+        this.addLog('WARMUP', `Manual step executed for ${acc.name}. Updated trust score.`, 'info');
+        this.saveData();
+        this.renderAccountsTable();
+        this.renderWarmupList();
+      }
+
+      triggerGlobalAction(actionType) {
+        const activeAccs = this.accounts.filter(a => a.status === 'ACTIVE' || a.status === 'WARMING');
+        if (activeAccs.length === 0) {
+          this.showToast('No active accounts available for global action.', 'warning');
+          return;
+        }
+
+        let label = '';
+        if (actionType === 'like_feed') label = 'Auto Feed Scroll & Like';
+        if (actionType === 'accept_friends') label = 'Friend Request Auto-Accept';
+        if (actionType === 'cookie_backup') label = 'Access Token Refresh';
+
+        this.showToast(`Executing "${label}" across ${activeAccs.length} accounts...`, 'info');
+
+        activeAccs.forEach(acc => {
+          acc.dailyActions += Math.floor(Math.random() * 5 + 2);
+        });
+
+        this.saveData();
+        this.renderAccountsTable();
+        this.addLog('AUTOMATION', `Global task triggered: "${label}" on ${activeAccs.length} active profiles.`, 'success');
+      }
+
+      renderMessengerOptions() {
+        const select = document.getElementById('chat-account-select');
+        if (!select) return;
+
+        select.innerHTML = this.accounts.map(a => `
+          <option value="${a.id}">${this.escapeHtml(a.name)} (${a.fbid})</option>
+        `).join('');
+
+        this.renderMessengerThreads();
+      }
+
+      renderMessengerThreads() {
+        const container = document.getElementById('chat-threads-list');
+        if (!container) return;
+
+        const currentAccId = document.getElementById('chat-account-select')?.value || this.accounts[0]?.id;
+        const threads = MOCK_MESSAGES[currentAccId] || [
+          { sender: 'Marketplace Inquiry', text: 'Is this item still available?', time: '2h ago', isMe: false }
+        ];
+
+        container.innerHTML = threads.map((msg, i) => `
+          <div onclick="app.selectThread('${currentAccId}', '${this.escapeHtml(msg.sender)}')" class="p-3 hover:bg-slate-800/60 cursor-pointer transition flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-xs font-bold shrink-0">
+              ${msg.sender[0]}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-baseline">
+                <p class="text-xs font-semibold text-white truncate">${this.escapeHtml(msg.sender)}</p>
+                <span class="text-[9px] text-slate-500">${msg.time}</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate">${this.escapeHtml(msg.text)}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      renderMessengerChat() {
+        this.renderMessengerThreads();
+        const currentAccId = document.getElementById('chat-account-select')?.value || this.accounts[0]?.id;
+        const msgs = MOCK_MESSAGES[currentAccId] || [];
+
+        const body = document.getElementById('chat-messages-body');
+        if (!body) return;
+
+        if (msgs.length === 0) {
+          body.innerHTML = `<div class="text-center text-xs text-slate-500 my-8">No message thread history for this account context.</div>`;
+          return;
+        }
+
+        body.innerHTML = msgs.map(m => `
+          <div class="flex flex-col ${m.isMe ? 'items-end' : 'items-start'}">
+            <div class="max-w-xs md:max-w-md px-3.5 py-2 rounded-2xl text-xs ${m.isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-slate-800 text-slate-200 rounded-bl-none'}">
+              ${this.escapeHtml(m.text)}
+            </div>
+            <span class="text-[9px] text-slate-500 mt-1 px-1">${m.time}</span>
+          </div>
+        `).join('');
+      }
+
+      sendChatMessage() {
+        const input = document.getElementById('chat-message-input');
+        if (!input || !input.value.trim()) return;
+
+        const currentAccId = document.getElementById('chat-account-select')?.value;
+        if (!currentAccId) return;
+
+        if (!MOCK_MESSAGES[currentAccId]) MOCK_MESSAGES[currentAccId] = [];
+
+        MOCK_MESSAGES[currentAccId].push({
+          sender: 'You',
+          text: input.value,
+          time: 'Just now',
+          isMe: true
+        });
+
+        input.value = '';
+        this.renderMessengerChat();
+        this.addLog('MESSENGER', `Sent response message via account ${currentAccId}`, 'info');
+      }
+
+      renderScheduledPosts() {
+        // Render per-account individual comment input boxes
+        const container = document.getElementById('individual-comments-container');
+        if (container) {
+          container.innerHTML = this.accounts.map(acc => `
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2 flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <input type="checkbox" id="check-acc-${acc.id}" value="${acc.id}" checked class="post-acc-checkbox rounded bg-slate-950 border-slate-800 text-purple-600 focus:ring-0">
+                  <span class="w-6 h-6 rounded-full bg-purple-600/30 text-purple-300 font-bold flex items-center justify-center text-[10px]">${acc.avatar || 'FB'}</span>
+                  <span class="text-xs font-semibold text-white">${this.escapeHtml(acc.name)}</span>
+                </div>
+                <span class="text-[10px] text-slate-500 font-mono">${acc.fbid}</span>
+              </div>
+              <textarea id="comment-text-${acc.id}" rows="2" placeholder="Write custom comment for ${this.escapeHtml(acc.name)}..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500"></textarea>
+            </div>
+          `).join('');
+        }
+
+        const list = document.getElementById('scheduled-posts-list');
+        if (!list) return;
+
+        if (this.posts.length === 0) {
+          list.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">No recent post or comment actions.</p>`;
+          return;
+        }
+
+        list.innerHTML = this.posts.map(p => `
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 text-xs space-y-1">
+            <div class="flex justify-between text-[10px] text-slate-500">
+              <span>Account: <strong>${this.escapeHtml(p.accName || 'Multiple Accounts')}</strong></span>
+              <span>${p.time}</span>
+            </div>
+            ${p.targetUrl ? `
+              <div class="text-[10px] text-blue-400 font-mono truncate flex items-center gap-1">
+                <i class="fa-solid fa-link text-xs"></i>
+                <a href="${this.escapeHtml(p.targetUrl)}" target="_blank" rel="noopener noreferrer" class="hover:underline truncate">${this.escapeHtml(p.targetUrl)}</a>
+              </div>
+            ` : ''}
+            <p class="text-slate-200 font-sans">${this.escapeHtml(p.caption)}</p>
+            <div class="text-[10px] text-emerald-400 flex items-center justify-between pt-1">
+              <span class="flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Comment Sent</span>
+              ${p.targetUrl ? `<a href="${this.escapeHtml(p.targetUrl)}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded border border-blue-500/20 text-[9px]">Open Link &rarr;</a>` : ''}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      applyCommonComment() {
+        const text = prompt('Enter a common comment text to fill in all account boxes:');
+        if (text === null) return;
+        this.accounts.forEach(acc => {
+          const area = document.getElementById(`comment-text-${acc.id}`);
+          if (area) area.value = text;
+        });
+        this.showToast('Common text filled in all account comment boxes.', 'info');
+      }
+
+      clearAllIndividualComments() {
+        this.accounts.forEach(acc => {
+          const area = document.getElementById(`comment-text-${acc.id}`);
+          if (area) area.value = '';
+        });
+        this.showToast('Cleared all comment boxes.', 'info');
+      }
+
+      publishPostNow() {
+        const targetUrlEl = document.getElementById('post-target-url-input');
+        const targetUrl = targetUrlEl ? targetUrlEl.value : '';
+
+        let publishedCount = 0;
+
+        this.accounts.forEach(acc => {
+          const checkbox = document.getElementById(`check-acc-${acc.id}`);
+          const textArea = document.getElementById(`comment-text-${acc.id}`);
+
+          if (checkbox && checkbox.checked && textArea && textArea.value.trim() !== '') {
+            const commentText = textArea.value.trim();
+            this.posts.unshift({
+              id: 'post_' + Date.now() + '_' + acc.id,
+              accName: acc.name,
+              accId: acc.id,
+              caption: commentText,
+              targetUrl,
+              accountsCount: 1,
+              time: new Date().toLocaleTimeString()
+            });
+            publishedCount++;
+            textArea.value = ''; // clear individual box after sending
+          }
+        });
+
+        if (publishedCount === 0) {
+          this.showToast('Please check at least 1 account and type a comment in its box.', 'warning');
+          return;
+        }
+
+        this.saveData();
+        this.renderScheduledPosts();
+        if (targetUrlEl) targetUrlEl.value = '';
+
+        this.showToast(`Submitted ${publishedCount} unique comments successfully!`, 'success');
+        this.addLog('PUBLISHER', `Sent ${publishedCount} individual account comments${targetUrl ? ' on target: ' + targetUrl : ''}.`, 'success');
+      }
+
+      addLog(category, message, type = 'info') {
+        const entry = {
+          id: 'log_' + Date.now(),
+          timestamp: new Date().toLocaleTimeString(),
+          category,
+          message,
+          type
+        };
+
+        this.logs.unshift(entry);
+        if (this.logs.length > 50) this.logs.pop(); // Keep last 50 logs
+        this.saveData();
+        this.renderLogs();
+      }
+
+      renderLogs() {
+        const fullContainer = document.getElementById('full-logs-container');
+        const dashContainer = document.getElementById('dash-recent-logs');
+
+        const logHTML = (log) => {
+          let badgeColor = 'text-blue-400 bg-blue-500/10';
+          if (log.type === 'success') badgeColor = 'text-emerald-400 bg-emerald-500/10';
+          if (log.type === 'warning') badgeColor = 'text-amber-400 bg-amber-500/10';
+
+          return `
+            <div class="flex items-start gap-2 text-[11px] py-1 border-b border-slate-900/60">
+              <span class="text-slate-500 shrink-0 font-mono">${log.timestamp}</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${badgeColor} shrink-0">${log.category}</span>
+              <span class="text-slate-300 flex-1 break-words">${this.escapeHtml(log.message)}</span>
+            </div>
+          `;
+        };
+
+        if (fullContainer) {
+          fullContainer.innerHTML = this.logs.map(logHTML).join('') || `<p class="text-slate-500">No system logs available.</p>`;
+        }
+
+        if (dashContainer) {
+          dashContainer.innerHTML = this.logs.slice(0, 4).map(logHTML).join('');
+        }
+      }
+
+      clearLogs() {
+        this.logs = [];
+        this.saveData();
+        this.renderLogs();
+        this.showToast('Audit logs cleared', 'info');
+      }
+
+      initChart() {
+        const ctx = document.getElementById('activityChart');
+        if (!ctx) return;
+
+        this.chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [
+              {
+                label: 'Automated Interactions',
+                data: [120, 190, 300, 250, 420, 380, 510],
+                borderColor: '#1877F2',
+                backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2
+              },
+              {
+                label: 'Friend Requests',
+                data: [30, 45, 60, 50, 80, 95, 110],
+                borderColor: '#10B981',
+                backgroundColor: 'transparent',
+                tension: 0.4,
+                borderWidth: 2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: '#94A3B8', font: { family: 'Inter', size: 11 } }
+              }
+            },
+            scales: {
+              x: {
+                grid: { color: 'rgba(255,255,255,0.05)' },
+                ticks: { color: '#64748B' }
+              },
+              y: {
+                grid: { color: 'rgba(255,255,255,0.05)' },
+                ticks: { color: '#64748B' }
+              }
+            }
+          }
+        });
+      }
+
+      refreshAllStatuses() {
+        this.showToast('Verifying session cookies & proxy IPs...', 'info');
+        setTimeout(() => {
+          this.showToast('All accounts operational!', 'success');
+          this.addLog('SYSTEM', 'Manual proxy & account status refresh sequence completed.', 'success');
+        }, 1000);
+      }
+
+      resetData() {
+        localStorage.clear();
+        this.accounts = DEFAULT_ACCOUNTS;
+        this.proxies = DEFAULT_PROXIES;
+        this.logs = [];
+        this.posts = [];
+        this.init();
+        this.showToast('Reset to default sample data.', 'info');
+      }
+
+      showToast(msg, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        let colors = 'bg-slate-900 border-slate-700 text-slate-100';
+        let icon = 'fa-circle-info text-blue-400';
+
+        if (type === 'success') {
+          colors = 'bg-slate-900 border-emerald-500/40 text-emerald-200';
+          icon = 'fa-circle-check text-emerald-400';
+        } else if (type === 'warning') {
+          colors = 'bg-slate-900 border-amber-500/40 text-amber-200';
+          icon = 'fa-triangle-exclamation text-amber-400';
+        }
+
+        toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl text-xs transition-all duration-300 transform translate-y-2 opacity-0 ${colors}`;
+        toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i><span>${this.escapeHtml(msg)}</span>`;
+
+        container.appendChild(toast);
+
+        // Animate Toast in
+        requestAnimationFrame(() => {
+          toast.classList.remove('translate-y-2', 'opacity-0');
+        });
+
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-2');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.remove('hidden');
+      }
+
+      closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.add('hidden');
+      }
+
+      escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+    }
+
+    let app;
+    window.onload = function() {
+      app = new FBMultiManager();
+    };
+  </script>
+</body>
+</html>
